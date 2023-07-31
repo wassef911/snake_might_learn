@@ -1,0 +1,34 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        types: [python]
+        exclude: ^.*\b(migrations)\b.*$|^migrations/|.xml$|.xsd$|.wsdl$|.json$
+  - repo: local
+    hooks:
+      - id: isort
+        stages: [commit]
+        name: isort
+        entry: isort
+        language: system
+        exclude: ^.*\b(migrations)\b.*$|^migrations/|.xml$|.xsd$|.wsdl$
+        types: [python]
+        args:
+          - --atomic
+          - --force-alphabetical-sort-within-sections
+          - --remove-redundant-aliases
+          - --profile=black
+  - repo: local
+    hooks:
+      - id: black
+        stages: [commit]
+        name: black
+        entry: black
+        language: system
+        types: [python]
+        exclude: ^migrations/|.xml$|.xsd$|.wsdl$
+        files: .
+        args:
+          - --skip-string-normalization

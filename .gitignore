@@ -1,0 +1,111 @@
+# Created by .ignore support plugin (hsz.mobi)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+configuration/settings/__pycache__/
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+*.mo
+*.pot
+*.log
+local_settings.py
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+target/
+.ipynb_checkpoints
+.python-version
+celerybeat-schedule
+*.sage.py
+.env
+.venv
+env/
+venv/
+ve/
+ENV/
+.spyderproject
+.spyproject
+.ropeproject
+/site
+.mypy_cache/
+.idea
+.DS_Store
+.vagrant
+
+# Vim swap files
+*.swp
+*.swo
+
+# Docker
+#docker-compose.override.yml
+.docker-data/
+
+# VSCODE
+.vscode/settings.json
+
+*.map
+
+# Whitelist certain css/wsdl files
+!src/core/static/html/css/*.css
+!static/wsdl/*
+
+# pyenv
+.python-version
+
+# terraform
+.terraform
+
+/media/**
+
+# devcontainer
+.devcontainer
+
+# Infisical
+.infisical.json
+
+#secrets
+secrets/
+devops/secrets/
+*.env
+
+# more - JH
+data/logos/
+logs/
+
+redis-data
+
+celerybeat-schedule
+dummy.data.*
+.garbage
+db.sqlite3
+
