@@ -1,0 +1,36 @@
+name: Python ML experiment
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install isort[colors] black
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Static Analysis
+        run: |
+          isort --check-only --color --diff --atomic --force-alphabetical-sort-within-sections --remove-redundant-aliases --skip migrations --profile=black .
+          black --check --diff --skip-string-normalization --exclude migrations .
+
+      - name: Test with pytest
+        run: |
+          python -m nose2

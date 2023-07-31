@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  user_model:
+    restart: on-failure
+    command: "python3 /app/use_model.py"
+    environment:
+      DATASET_PATH: /app/src/data/chatgpt.csv
+      MODEL_PATH: /app/sentiment_model.joblib
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    depends_on:
+      - zookeeper
+      - kafka
