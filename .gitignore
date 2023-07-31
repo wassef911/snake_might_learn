@@ -108,4 +108,3 @@ celerybeat-schedule
 dummy.data.*
 .garbage
 db.sqlite3
-

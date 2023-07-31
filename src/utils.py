@@ -1,16 +1,29 @@
-import pandas as pd
-import matplotlib.pyplot as plt
+__all__ = (
+    "clean_emojis",
+    "clean_hyperlinks",
+    "clean_punctuation",
+    "lemmatize",
+    "apply_pipeline",
+    "draw",
+    "timestamp",
+)
 
-from typing import List
-import string
 import re
+import string
+from typing import List
+from datetime import datetime
 
+import matplotlib.pyplot as plt
+import pandas as pd
+from nltk import word_tokenize, WordNetLemmatizer
 from nltk.corpus import stopwords
-from nltk import WordNetLemmatizer
-from nltk import word_tokenize
 
 
-def clean_emojis(string):
+def timestamp() -> str:
+    return datetime.timestamp(datetime.now())
+
+
+def clean_emojis(string: str) -> str:
     emoji_pattern = re.compile(
         "["
         "\U0001F600-\U0001F64F"  # emoticons
@@ -25,7 +38,7 @@ def clean_emojis(string):
     return emoji_pattern.sub(r"", string)
 
 
-def clean_hyperlinks(text):
+def clean_hyperlinks(text: str) -> str:
     temp = re.sub("<[a][^>]*>(.+?)</[a]>", "Link.", text)
     temp = re.sub(r"http\S+", "", temp)
     temp = re.sub("&gt;", "", temp)  # greater than sign
@@ -39,7 +52,7 @@ def clean_hyperlinks(text):
     return temp
 
 
-def clean_tweet(tweet):
+def clean_punctuation(tweet: str) -> str:
     temp = tweet.lower()
     temp = re.sub("'", "", temp)
     temp = re.sub("@[A-Za-z0-9_]+", "", temp)

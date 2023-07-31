@@ -1,10 +1,17 @@
-from src.utils import *
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from decouple import config
+import pandas as pd
 
-df: pd.DataFrame = pd.read_csv(
-    "/home/wassef/Desktop/code/personal/horizon/ML/chatgpt.csv"
+
+from src.utils import *
+
+DATASET_PATH = config(
+    "DATASET_PATH",
+    default="/home/wassef/Desktop/code/personal/horizon/ML/src/data/chatgpt.csv",
 )
+
+df: pd.DataFrame = pd.read_csv(DATASET_PATH)
 
 df.info()
 
@@ -29,7 +36,7 @@ feature_extraction_pipeline = [
 
 cleaning_pipeline = [
     ("tweet", "tweet", clean_hyperlinks),
-    ("tweet", "tweet", clean_tweet),
+    ("tweet", "tweet", clean_punctuation),
     ("tweet", "tweet", clean_emojis),
 ]
 
@@ -60,11 +67,12 @@ data.loc[data.sentiment_compound_polarity < 0, "sentiment_type"] = "NEGATIVE"
 
 
 sentiment_counts = data["sentiment_type"].value_counts()
+
 draw(
     sentiment_counts.index,
     sentiment_counts.values,
     xlabel="Sentiment Type",
     ylabel="Count",
     title="Sentiment Analysis Results",
-    savefig="sentiment_analysis_chart.png",
+    savefig=f"sentiment_analysis_chart_{timestamp()}.png",
 )
