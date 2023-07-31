@@ -1,14 +1,17 @@
+import pandas as pd
+from decouple import config
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from decouple import config
-import pandas as pd
-
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+import joblib
 from src.utils import *
 
 DATASET_PATH = config(
     "DATASET_PATH",
-    default="/home/wassef/Desktop/code/personal/horizon/ML/src/data/chatgpt.csv",
+    default="/home/wassef/Desktop/code/personal/ML/src/data/chatgpt.csv",
 )
 
 df: pd.DataFrame = pd.read_csv(DATASET_PATH)
@@ -40,39 +43,73 @@ cleaning_pipeline = [
     ("tweet", "tweet", clean_emojis),
 ]
 
-lemmatization_pipeline = [("final_tweet", "tweet", lemmatize)]
+lemmatization_pipeline = [("lemmatized_tweet", "tweet", lemmatize)]
 
 for pipeline in [
-    feature_extraction_pipeline,
     cleaning_pipeline,
-    lemmatization_pipeline,
+    feature_extraction_pipeline,
+    lemmatization_pipeline,  # let's pretend this is an actual pipeline xDD
 ]:
     data = apply_pipeline(pipeline, data)
 
+#
+#           IMPLEMENTATION:
+#
+
 sid = SentimentIntensityAnalyzer()
-data["sentiment_compound_polarity"] = data.final_tweet.apply(
+
+data["sentiment_compound_polarity"] = data.lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["compound"]
 )
-data["sentiment_neutral"] = data.final_tweet.apply(
+
+data["sentiment_neutral"] = data.lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["neu"]
 )
-data["sentiment_negative"] = data.final_tweet.apply(
+data["sentiment_negative"] = data.lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["neg"]
 )
-data["sentiment_pos"] = data.final_tweet.apply(lambda x: sid.polarity_scores(x)["pos"])
-
-data.loc[data.sentiment_compound_polarity > 0, "sentiment_type"] = "POSITIVE"
-data.loc[data.sentiment_compound_polarity == 0, "sentiment_type"] = "NEUTRAL"
-data.loc[data.sentiment_compound_polarity < 0, "sentiment_type"] = "NEGATIVE"
-
-
-sentiment_counts = data["sentiment_type"].value_counts()
-
-draw(
-    sentiment_counts.index,
-    sentiment_counts.values,
-    xlabel="Sentiment Type",
-    ylabel="Count",
-    title="Sentiment Analysis Results",
-    savefig=f"sentiment_analysis_chart_{timestamp()}.png",
+data["sentiment_pos"] = data.lemmatized_tweet.apply(
+    lambda x: sid.polarity_scores(x)["pos"]
 )
+
+data["sentiment_type"] = [
+    "NEGATIVE" if i <= 0 else "POSITIVE" for i in data["sentiment_pos"]
+]
+
+X = data[
+    [
+        "sentiment_compound_polarity",
+        "sentiment_neutral",
+        "sentiment_negative",
+        "sentiment_pos",
+    ]
+]
+y = data["sentiment_type"]
+
+# Split the data into training and testing sets (80% for training, 20% for testing)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Step 2: Choose a Model (Logistic Regression as an example)
+model = LogisticRegression()
+
+# Step 3: Train the Model
+model.fit(X_train, y_train)
+
+# Step 4: Evaluate the Model
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
+# Calculate the confusion matrix and classification report
+confusion_mat = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+print("Confusion Matrix:")
+print(confusion_mat)
+
+print("\nClassification Report:")
+print(class_report)
+
+joblib.dump(model, "sentiment_model.joblib")

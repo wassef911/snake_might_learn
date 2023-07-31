@@ -10,8 +10,8 @@ __all__ = (
 
 import re
 import string
-from typing import List
 from datetime import datetime
+from typing import List
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -75,20 +75,20 @@ def clean_punctuation(tweet: str) -> str:
     return temp
 
 
-def lemmatize(text):
+def lemmatize(text: str) -> str:
     lemma = WordNetLemmatizer()
     words = word_tokenize(text)
     return " ".join([lemma.lemmatize(word) for word in words])
 
 
-def apply_pipeline(pipeline: List, data: pd.DataFrame):
+def apply_pipeline(pipeline: List, data: pd.DataFrame) -> pd.DataFrame:
     for operation in pipeline:
-        inner_key, outer_key, signature = operation
-        data[inner_key] = data[outer_key].apply(signature)
+        result_key, target_key, signature = operation
+        data[result_key] = data[target_key].apply(signature)
     return data
 
 
-def draw(index, values, **kwargs):
+def draw(index, values, **kwargs) -> None:
     plt.bar(index, values)
     plt.xlabel(kwargs["xlabel"])
     plt.ylabel(kwargs["ylabel"])

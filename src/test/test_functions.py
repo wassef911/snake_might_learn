@@ -1,4 +1,5 @@
 import unittest
+
 from src.utils import clean_emojis
 
 
