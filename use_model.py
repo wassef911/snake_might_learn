@@ -38,33 +38,33 @@ feature_extraction_pipeline = [
 ]
 
 cleaning_pipeline = [
-    ("tweet", "tweet", clean_hyperlinks),
-    ("tweet", "tweet", clean_punctuation),
-    ("tweet", "tweet", clean_emojis),
+    ("tweet", "tweet", _clean_hyperlinks),
+    ("tweet", "tweet", _clean_punctuation),
+    ("tweet", "tweet", _clean_emojis),
 ]
 
-lemmatization_pipeline = [("lemmatized_tweet", "tweet", lemmatize)]
+lemmatization_pipeline = [("_lemmatized_tweet", "tweet", _lemmatize)]
 
 for pipeline in [
     cleaning_pipeline,
     feature_extraction_pipeline,
     lemmatization_pipeline,  # let's pretend this is an actual pipeline xDD
 ]:
-    data = apply_pipeline(pipeline, data)
+    data = _apply_pipeline(pipeline, data)
 
 sid = SentimentIntensityAnalyzer()
 
-data["sentiment_compound_polarity"] = data.lemmatized_tweet.apply(
+data["sentiment_compound_polarity"] = data._lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["compound"]
 )
 
-data["sentiment_neutral"] = data.lemmatized_tweet.apply(
+data["sentiment_neutral"] = data._lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["neu"]
 )
-data["sentiment_negative"] = data.lemmatized_tweet.apply(
+data["sentiment_negative"] = data._lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["neg"]
 )
-data["sentiment_pos"] = data.lemmatized_tweet.apply(
+data["sentiment_pos"] = data._lemmatized_tweet.apply(
     lambda x: sid.polarity_scores(x)["pos"]
 )
 

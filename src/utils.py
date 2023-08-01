@@ -1,25 +1,23 @@
 __all__ = (
-    "clean_emojis",
-    "clean_hyperlinks",
-    "clean_punctuation",
-    "lemmatize",
-    "apply_pipeline",
-    "draw",
-    "timestamp",
+    "_clean_emojis",
+    "_clean_hyperlinks",
+    "_clean_punctuation",
+    "_lemmatize",
+    "_apply_pipeline",
+    "process_data",
 )
 
 import re
 import string
-from datetime import datetime
 from typing import List
 
-import matplotlib.pyplot as plt
 import pandas as pd
 from nltk import word_tokenize, WordNetLemmatizer
 from nltk.corpus import stopwords
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
-def clean_emojis(string: str) -> str:
+def _clean_emojis(string: str) -> str:
     emoji_pattern = re.compile(
         "["
         "\U0001F600-\U0001F64F"  # emoticons
@@ -34,7 +32,7 @@ def clean_emojis(string: str) -> str:
     return emoji_pattern.sub(r"", string)
 
 
-def clean_hyperlinks(text: str) -> str:
+def _clean_hyperlinks(text: str) -> str:
     temp = re.sub("<[a][^>]*>(.+?)</[a]>", "Link.", text)
     temp = re.sub(r"http\S+", "", temp)
     temp = re.sub("&gt;", "", temp)  # greater than sign
@@ -50,7 +48,7 @@ def clean_hyperlinks(text: str) -> str:
     return temp
 
 
-def clean_punctuation(tweet: str) -> str:
+def _clean_punctuation(tweet: str) -> str:
     temp = tweet.lower()
     temp = re.sub(r"http\S+", "", temp)
     temp = re.sub("'", "", temp)
@@ -70,23 +68,77 @@ def clean_punctuation(tweet: str) -> str:
     return temp.strip()
 
 
-def lemmatize(text: str) -> str:
+def _lemmatize(text: str) -> str:
     lemma = WordNetLemmatizer()
     words = word_tokenize(text)
     return " ".join([lemma.lemmatize(word) for word in words])
 
 
-def apply_pipeline(pipeline: List, data: pd.DataFrame) -> pd.DataFrame:
+def _apply_pipeline(pipeline: List, data: pd.DataFrame) -> pd.DataFrame:
     for operation in pipeline:
         result_key, target_key, signature = operation
         data[result_key] = data[target_key].apply(signature)
     return data
 
 
-def draw(index, values, **kwargs) -> None:
-    plt.bar(index, values)
-    plt.xlabel(kwargs["xlabel"])
-    plt.ylabel(kwargs["ylabel"])
-    plt.title(kwargs["title"])
-    plt.savefig(kwargs["savefig"])
-    plt.close()
+def process_data(full_path_to_csv: str) -> pd.DataFrame:
+    df: pd.DataFrame = pd.read_csv(full_path_to_csv)
+
+    df = df.drop(["country", "photo_url", "city", "country_code"], axis=1)
+
+    data: pd.DataFrame = df.copy()
+
+    feature_extraction_pipeline = [
+        (
+            "hashtag_count",
+            "tweet",
+            lambda x: len([x for x in x.split() if x.startswith("#")]),
+        ),
+        ("word_count", "tweet", lambda x: len(str(x).split(" "))),
+        ("char_count", "tweet", lambda text: sum(len(char) for char in text.split())),
+        (
+            "stopwords_count",
+            "tweet",
+            lambda x: len([x for x in x.split() if x in stopwords.words("english")]),
+        ),
+    ]
+
+    cleaning_pipeline = [
+        ("tweet", "tweet", _clean_hyperlinks),
+        ("tweet", "tweet", _clean_punctuation),
+        ("tweet", "tweet", _clean_emojis),
+    ]
+
+    lemmatization_pipeline = [("_lemmatized_tweet", "tweet", _lemmatize)]
+
+    for pipeline in [
+        cleaning_pipeline,
+        feature_extraction_pipeline,
+        lemmatization_pipeline,  # let's pretend this is an actual pipeline xDD
+    ]:
+        data = _apply_pipeline(pipeline, data)
+
+    #
+    #           IMPLEMENTATION:
+    #
+
+    sid = SentimentIntensityAnalyzer()
+
+    data["sentiment_compound_polarity"] = data._lemmatized_tweet.apply(
+        lambda x: sid.polarity_scores(x)["compound"]
+    )
+
+    data["sentiment_neutral"] = data._lemmatized_tweet.apply(
+        lambda x: sid.polarity_scores(x)["neu"]
+    )
+    data["sentiment_negative"] = data._lemmatized_tweet.apply(
+        lambda x: sid.polarity_scores(x)["neg"]
+    )
+    data["sentiment_pos"] = data._lemmatized_tweet.apply(
+        lambda x: sid.polarity_scores(x)["pos"]
+    )
+
+    data["sentiment_type"] = [
+        "NEGATIVE" if i <= 0 else "POSITIVE" for i in data["sentiment_pos"]
+    ]
+    return data
