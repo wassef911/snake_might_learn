@@ -12,6 +12,3 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app
-    depends_on:
-      - zookeeper
-      - kafka
