@@ -110,3 +110,5 @@ dummy.data.*
 db.sqlite3
 *.csv
 *.pyc
+**.csv
+**.joblib
