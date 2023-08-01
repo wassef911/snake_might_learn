@@ -19,10 +19,6 @@ from nltk import word_tokenize, WordNetLemmatizer
 from nltk.corpus import stopwords
 
 
-def timestamp() -> str:
-    return datetime.timestamp(datetime.now())
-
-
 def clean_emojis(string: str) -> str:
     emoji_pattern = re.compile(
         "["
@@ -45,6 +41,8 @@ def clean_hyperlinks(text: str) -> str:
     temp = re.sub("&#x27;", "'", temp)  # apostrophe
     temp = re.sub("&#x2F;", " ", temp)
     temp = re.sub("<p>", " ", temp)  # paragraph tag
+    temp = re.sub("'", "", temp)
+    temp = re.sub("</p>", " ", temp)  # paragraph tag
     temp = re.sub("<i>", " ", temp)  # italics tag
     temp = re.sub("</i>", "", temp)
     temp = re.sub("&#62;", "", temp)
@@ -54,25 +52,22 @@ def clean_hyperlinks(text: str) -> str:
 
 def clean_punctuation(tweet: str) -> str:
     temp = tweet.lower()
+    temp = re.sub(r"http\S+", "", temp)
     temp = re.sub("'", "", temp)
     temp = re.sub("@[A-Za-z0-9_]+", "", temp)
     temp = re.sub("chatgpt", "", temp)
-    temp = re.sub(r"http\S+", "", temp)
     temp = re.sub("[()!?]", " ", temp)
     temp = re.sub("\[.*?\]", " ", temp)
     punc = string.punctuation
     temp = temp.translate(str.maketrans("", "", punc))
 
-    # removing stopwords
-    new_list = []
+    # Removing stopwords
     words = word_tokenize(temp)
-    sws = stopwords.words("english")
-    for word in words:
-        if word not in sws:
-            new_list.append(word)
+    sws = set(stopwords.words("english"))
+    new_list = [word for word in words if word not in sws]
 
     temp = " ".join(new_list)
-    return temp
+    return temp.strip()
 
 
 def lemmatize(text: str) -> str:

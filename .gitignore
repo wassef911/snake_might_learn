@@ -109,4 +109,4 @@ dummy.data.*
 .garbage
 db.sqlite3
 *.csv
-/venv/**
+*.pyc
