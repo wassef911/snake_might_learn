@@ -3,7 +3,7 @@ __all__ = (
     "_clean_hyperlinks",
     "_clean_punctuation",
     "_lemmatize",
-    "_apply_pipeline",
+    "__apply_pipeline",
     "process_data",
 )
 
@@ -74,7 +74,7 @@ def _lemmatize(text: str) -> str:
     return " ".join([lemma.lemmatize(word) for word in words])
 
 
-def _apply_pipeline(pipeline: List, data: pd.DataFrame) -> pd.DataFrame:
+def __apply_pipeline(pipeline: List, data: pd.DataFrame) -> pd.DataFrame:
     for operation in pipeline:
         result_key, target_key, signature = operation
         data[result_key] = data[target_key].apply(signature)
@@ -109,14 +109,14 @@ def process_data(full_path_to_csv: str) -> pd.DataFrame:
         ("tweet", "tweet", _clean_emojis),
     ]
 
-    lemmatization_pipeline = [("_lemmatized_tweet", "tweet", _lemmatize)]
+    lemmatization_pipeline = [("lemmatized_tweet", "tweet", _lemmatize)]
 
     for pipeline in [
         cleaning_pipeline,
         feature_extraction_pipeline,
         lemmatization_pipeline,  # let's pretend this is an actual pipeline xDD
     ]:
-        data = _apply_pipeline(pipeline, data)
+        data = __apply_pipeline(pipeline, data)
 
     #
     #           IMPLEMENTATION:
@@ -124,21 +124,9 @@ def process_data(full_path_to_csv: str) -> pd.DataFrame:
 
     sid = SentimentIntensityAnalyzer()
 
-    data["sentiment_compound_polarity"] = data._lemmatized_tweet.apply(
-        lambda x: sid.polarity_scores(x)["compound"]
-    )
-
-    data["sentiment_neutral"] = data._lemmatized_tweet.apply(
-        lambda x: sid.polarity_scores(x)["neu"]
-    )
-    data["sentiment_negative"] = data._lemmatized_tweet.apply(
-        lambda x: sid.polarity_scores(x)["neg"]
-    )
-    data["sentiment_pos"] = data._lemmatized_tweet.apply(
+    data["sentiment_pos"] = data.lemmatized_tweet.apply(
         lambda x: sid.polarity_scores(x)["pos"]
     )
 
-    data["sentiment_type"] = [
-        "NEGATIVE" if i <= 0 else "POSITIVE" for i in data["sentiment_pos"]
-    ]
+    data["sentiment_type"] = [round(i) for i in data["sentiment_pos"]]
     return data

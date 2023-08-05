@@ -1,6 +1,7 @@
 import joblib
 import pandas as pd
 from decouple import config
+from sklearn.feature_extraction.text import CountVectorizer
 
 from src.utils import *
 
@@ -17,16 +18,8 @@ MODEL_PATH = config(
 data: pd.DataFrame = process_data(DATASET_PATH)
 
 loaded_model = joblib.load(MODEL_PATH)
+vectorizer = CountVectorizer()
+predictions = loaded_model.predict(vectorizer.fit_transform(data["lemmatized_tweet"]))
 
-predictions = loaded_model.predict(
-    data[
-        [
-            "sentiment_compound_polarity",
-            "sentiment_neutral",
-            "sentiment_negative",
-            "sentiment_pos",
-        ]
-    ]
-)
-
-print(predictions)
+for idx, prediction in enumerate(predictions):
+    print("SCORE = ", prediction, " COMMENT = ", data["tweet"][idx])
